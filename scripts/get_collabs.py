@@ -32,6 +32,7 @@ def create_collab_yaml(name, data):
     if not data:
         return
     yaml_data = {}
+    yaml_data[name] = {}
     for collab in data:
         if collab['type'] != 'User':
             continue
