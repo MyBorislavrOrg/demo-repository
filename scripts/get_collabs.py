@@ -84,4 +84,4 @@ def main(path):
             continue
 
 if __name__ == "__main__":
-    main('./repos')
+    main('./collabs')
