@@ -2,6 +2,7 @@
 
 import json
 import yaml
+import os
 
 def parse_json_file(file_path):
     """
@@ -22,7 +23,7 @@ def parse_json_file(file_path):
         print(f"Unexpected error: {e}")
     return None
 
-def create_collab_yaml(data):
+def create_collab_yaml(name, data):
     """
     Creates a YAML file with the data from a parsed JSON object.
 
@@ -39,13 +40,12 @@ def create_collab_yaml(data):
             return
         else:
             auth = get_permissions(collab['permissions'])
-            yaml_data[collab['login']] = {'type': 'user', 'permissions': auth}
+            yaml_data[name] = {collab['login']: {'type': 'user', 'permissions': auth}}
     print("YAML data:")
     print(yaml_data)
 
-
     try:
-        with open('collabs.yaml', 'w') as file:
+        with open(f'{name}.yaml', 'w') as file:
             yaml.dump(yaml_data, file)
         print("YAML file created successfully.")
     except Exception as e:
@@ -67,16 +67,21 @@ def get_permissions(collab_permissions):
         auth = "read"
     return auth
 
-def main():
+def main(path):
     """
     Main function to demonstrate the usage of parse_json_file.
     """
-    file_path = "./collabs.json"
-    data = parse_json_file(file_path)
-    if data:
-        print("Parsed JSON data:")
-        print(data)
-        create_collab_yaml(data)
+    directory = os.fsencode(path)
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        if filename.endswith(".json"): 
+            print(os.path.join(directory, filename))
+            data = parse_json_file(os.path.join(directory, filename))
+            if len(data) > 0
+                create_collab_yaml(os.path.splitext(filename)[0], data)
+            continue
+        else:
+            continue
 
 if __name__ == "__main__":
-    main()
+    main('./repos')
