@@ -77,11 +77,11 @@ def main(path):
         if filename.endswith(".json"): 
             print(os.path.join(directory, filename))
             data = parse_json_file(os.path.join(directory, filename))
-            if len(data) > 0
+            if len(data) > 0:
                 create_collab_yaml(os.path.splitext(filename)[0], data)
             continue
         else:
             continue
 
 if __name__ == "__main__":
-    main('./collabs')
+    main('../collabs')
