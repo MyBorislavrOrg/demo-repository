@@ -20,7 +20,7 @@ jobs:
           # echo "repos=${repos}" >> $GITHUB_ENV
           for repo in ${repos}; do
             curl -sL -o ./collabs/${repo}.json \
-            -H "Authorization: ${{ secrets.COLLAB_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.COLLAB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -XGET "https://api.github.com/repos/MyBorislavrOrg/${repo}/collaborators?affiliation=outside"
           done
