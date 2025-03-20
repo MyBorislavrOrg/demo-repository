@@ -75,8 +75,8 @@ def main(path):
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
         if filename.endswith(".json"): 
-            print(os.path.join(directory, filename))
-            data = parse_json_file(os.path.join(directory, filename))
+            print(os.path.join(path, filename))
+            data = parse_json_file(os.path.join(path, filename))
             if len(data) > 0:
                 create_collab_yaml(os.path.splitext(filename)[0], data)
             continue
