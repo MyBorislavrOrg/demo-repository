@@ -40,7 +40,7 @@ def create_collab_yaml(name, data):
             return
         else:
             auth = get_permissions(collab['permissions'])
-            yaml_data[name] = {collab['login']: {'type': 'user', 'permissions': auth}}
+            yaml_data[name][collab['login']] = {'type': 'user', 'permissions': auth}
     print("YAML data:")
     print(yaml_data)
 
