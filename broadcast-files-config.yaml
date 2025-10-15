@@ -1,0 +1,22 @@
+common-files:
+  bot_branch_name: broadcast-common-files
+  patterns_to_include: >
+    .gitattributes,
+  destination: .
+  commit_message: "chore: [skip ci] update of common files"
+common-workflows:
+  patterns_to_include: >
+    workflow-templates/cla.yaml,
+    workflow-templates/super-linter.yaml,
+    workflow-templates/profanity-filter.yaml,
+    workflow-templates/automatic-pr-labeler.yaml,
+    workflow-templates/pr-conventional-commits.yaml,
+    workflow-templates/pr-lint-title.yaml,
+    workflow-templates/link-checker.yaml
+    workflow-templates/ossf-scorecard.yaml
+  destination: .github/workflows
+  repos_to_ignore: >
+    KubeMarine, k8s-conformance, gatekeeper-library,
+    cassandra-exporter, pg_hint_plan
+  bot_branch_name: broadcast-workflows
+  commit_message: 'chore: [skip ci] update of common workflows'

@@ -1,0 +1,91 @@
+---
+name: Broadcast files to organization
+run-name: "${{ inputs.config-file }}. ${{ inputs.section }} files broadcast to ${{ inputs.repos || 'all repositories' }}"
+on:
+  workflow_dispatch:
+    inputs:
+      repos:
+        description: |
+          Target repositorys names. Comma-separated
+          If not provided, the action will be triggered for all repositories in the organization.
+        required: false
+        type: string
+      config-file:
+        description: 'Config file relative path'
+        required: true
+        type: string
+        default: '.github/broadcast-files-config.yaml'
+      section:
+        description: 'Name of the dict in config file'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: read
+jobs:
+  setup_jobs:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.setup_matrix.outputs.matrix }}
+      config: ${{ steps.setup_matrix.outputs.config }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: setup_matrix
+        run: |
+          if [[ "${{ inputs.repos }}" != "" ]]; then
+            CSV_STRING="${{ inputs.repos }}"
+            JSON_MATRIX=$(jq -c -n --arg in_str "$CSV_STRING" '$in_str | split(",")')
+            echo "matrix=$JSON_MATRIX"
+            echo "matrix=$JSON_MATRIX" >> $GITHUB_OUTPUT
+          else
+            echo "matrix=[\"\"]"
+            echo "matrix=[\"\"]" >> $GITHUB_OUTPUT
+          fi
+          if [[ -f "${{ inputs.config-file }}" ]]; then
+            wget -q https://github.com/mikefarah/yq/releases/download/v4.34.1/yq_linux_amd64 -O yq
+            chmod +x yq
+            sudo mv yq /usr/local/bin/yq
+            if [[ "${{ inputs.section }}" != "" ]]; then
+              settings=$(yq eval ".${{ inputs.section }}" "${{ inputs.config-file }}" -o=json | jq -c '{settings: .}')
+            else
+              echo "::error::Config file section not specified!"
+              echo "[ERROR]: Config file section not specified!" >> $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+            echo "config=$settings" >> $GITHUB_OUTPUT
+          else
+            echo "::error::Config file '${{ inputs.config-file }}' not found."
+            echo "[ERROR]: Config file '${{ inputs.config-file }}' not found." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+  replicate_files:
+    needs: setup_jobs
+    name: Replicating files
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: ${{ fromJson(needs.setup_jobs.outputs.matrix) }}
+      max-parallel: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Replicating files
+        uses: borislavr/manage-files-in-multiple-repositories@v2.2.1
+        with:
+          github_token: '${{ secrets.BORISLAVR_PAT }}'
+          exclude_private: true
+          exclude_forked: false
+          committer_username: borislavr
+          bot_branch_name: ${{ fromJson(needs.setup_jobs.outputs.config).settings.bot_branch_name || 'broadcast-files' }}
+          patterns_to_include: ${{ fromJson(needs.setup_jobs.outputs.config).settings.patterns_to_include || '' }}
+          topics_to_include: ${{ fromJson(needs.setup_jobs.outputs.config).settings.topics_to_include || '' }}
+          destination: ${{ fromJson(needs.setup_jobs.outputs.config).settings.destination || '.' }}
+          commit_message: ${{ fromJson(needs.setup_jobs.outputs.config).settings.commit_message || 'broadcasted files' }}
+          repo_name: ${{ matrix.repo }}
+          patterns_to_ignore: ${{ fromJson(needs.setup_jobs.outputs.config).settings.patterns_to_ignore || '' }}
+          patterns_to_remove: ${{ fromJson(needs.setup_jobs.outputs.config).settings.patterns_to_remove || '' }}
+          repos_to_ignore: ${{ fromJson(needs.setup_jobs.outputs.config).settings.repos_to_ignore || '' }}

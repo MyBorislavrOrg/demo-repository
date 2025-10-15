@@ -1,0 +1,50 @@
+---
+name: Reusable Broadcast files to organization
+on:
+  workflow_call:
+    inputs:
+      repo_name:
+        description: |
+          Target repository name.
+          If not provided, the action will be triggered for all repositories in the organization.
+        required: false
+        type: string
+      config-file:
+        description: 'Config file relative path'
+        required: true
+        type: string
+      section:
+        description: "Config file section name"
+        required: false
+        type: string
+    secrets:
+      token:
+        required: true
+
+#permissions:
+#  contents: read
+#  pull-requests: write
+#  statuses: read
+jobs:
+  replicate_common_files:
+    name: Replicating common git files
+    if: ${{ inputs.replicate-common-files }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Replicating common files
+        uses: borislavr/manage-files-in-multiple-repositories@main
+        with:
+          github_token: '${{ secrets.token }}'
+          exclude_private: true
+          exclude_forked: false
+          committer_username: borislavr
+          bot_branch_name: broadcast-common-files
+          patterns_to_include: >
+            .gitattributes, .editorconfig
+          destination: .
+          commit_message: 'chore: update of common files'
+          repo_name: ${{ inputs.repo_name }}
+          patterns_to_ignore: ''
+          patterns_to_remove: ''
