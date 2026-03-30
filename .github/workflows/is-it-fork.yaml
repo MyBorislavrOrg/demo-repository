@@ -1,0 +1,16 @@
+name: Is It Fork
+on:
+  workflow_dispatch: {}
+  pull_request: {}
+jobs:
+  fork-or-not:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository is a fork
+        if: github.event.repository.fork
+        run: |
+          echo "This repo is a fork"
+      - name: Repository is NOT a fork
+        if: ${{ ! github.event.repository.fork }}
+        run: |
+          echo "This repo is NOT a fork"
